@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CareerCompass AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>tailwind.config={theme:{extend:{fontFamily:{d:['"Bricolage Grotesque"','system-ui','sans-serif']},colors:{bg:'var(--bg)',card:'var(--card)',ink:'var(--ink)',mut:'var(--mut)',line:'var(--line)',ac:'var(--ac)',ac2:'var(--ac2)'}}}}</script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#F3F6F4;--card:#fff;--ink:#12261F;--mut:#5B6B64;--line:#DCE4DF;--ac:#0B6E5C;--ac2:#E8A33D}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1714;--card:#16231F;--ink:#E8F0EC;--mut:#9BB0A7;--line:#263832;--ac:#3FC1A5;--ac2:#E8A33D}}
+:root[data-theme="dark"]{--bg:#0E1714;--card:#16231F;--ink:#E8F0EC;--mut:#9BB0A7;--line:#263832;--ac:#3FC1A5;--ac2:#E8A33D}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:auto;background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif}
+.btn{background:var(--ac);color:var(--bg);font-weight:700;border-radius:10px;padding:.65rem 1.1rem}
+.btn:hover{filter:brightness(1.1)}.btn2{border:1px solid var(--line);border-radius:10px;padding:.6rem 1rem;font-weight:500}
+.chip{border:1px solid var(--line);border-radius:999px;padding:.3rem .8rem;font-size:.85rem;background:var(--card)}
+.chip.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}
+input,select,textarea{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.55rem .75rem;width:100%}
+:focus-visible{outline:2px solid var(--ac2);outline-offset:2px}
+@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin 1s linear infinite}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style></head>
+<body><div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/dist/htm.umd.js"></script>
+<script>
+const {useState,useEffect}=React;const h=htm.bind(React.createElement);
+const K='careercompass-demo-v1';
+// ---- Mock career data (demo-generated, rule-based) ----
+const C=[
+{id:'swe',t:'Software Developer',i:['Technology','Problem solving','Building apps'],sub:['Computer Science','Mathematics'],s:['Python','JavaScript','Git','Data structures','APIs','SQL'],r:['Junior Developer','Frontend Developer','Backend Developer'],w:'Fits students who enjoy building things and solving logic problems.',p:[['Personal portfolio site','HTML/CSS/JS site with 3 projects'],['Task manager app','CRUD app with a simple API'],['Weather dashboard','Fetch public API data and show charts']],res:['freeCodeCamp','The Odin Project','CS50 (Harvard, free)']},
+{id:'da',t:'Data Analyst',i:['Data','Math','Business'],sub:['Mathematics','Statistics','Economics'],s:['Excel','SQL','Python','Statistics','Data visualization','Communication'],r:['Data Analyst','BI Analyst','Reporting Analyst'],w:'Fits students who like finding patterns in numbers and explaining them.',p:[['Sales dashboard','Clean a CSV and build charts'],['Survey analysis','Analyse a campus survey and present findings'],['SQL case study','Answer 10 business questions with queries']],res:['Kaggle Learn','Khan Academy Statistics','Mode SQL Tutorial']},
+{id:'ml',t:'ML / AI Engineer',i:['Technology','Math','Research'],sub:['Mathematics','Computer Science','Statistics'],s:['Python','Statistics','Linear algebra','Machine learning','Data cleaning','Git'],r:['ML Engineer (entry)','AI Research Assistant','Data Scientist (junior)'],w:'Fits students strong in math who enjoy experimenting with models.',p:[['Spam classifier','Train a text classifier on a public dataset'],['House price predictor','Regression with scikit-learn'],['Image recognizer','Small CNN on a public dataset']],res:['Kaggle Learn','fast.ai course','Andrew Ng ML (audit free)']},
+{id:'ux',t:'UX / UI Designer',i:['Design','Creativity','People'],sub:['Art','Psychology','Computer Science'],s:['Figma','User research','Wireframing','Typography','Prototyping','Communication'],r:['UI Designer','UX Researcher (junior)','Product Designer (junior)'],w:'Fits creative students who care how products feel to use.',p:[['App redesign case study','Redesign a screen you find confusing'],['Mobile app prototype','Clickable Figma prototype'],['Usability test report','Test with 5 classmates and report']],res:['Figma Learn','Google UX Design (audit)','Laws of UX']},
+{id:'sec',t:'Cybersecurity Analyst',i:['Security','Technology','Problem solving'],sub:['Computer Science','Mathematics'],s:['Networking','Linux','Python','Security basics','Cryptography','Git'],r:['SOC Analyst (junior)','Security Intern','IT Security Associate'],w:'Fits curious students who like puzzles, systems and how things break.',p:[['Home lab','Set up a VM lab and scan it safely'],['Password checker','Tool that rates password strength'],['CTF write-ups','Solve beginner CTFs and document them']],res:['TryHackMe (free tier)','OverTheWire','Cisco Networking Basics']},
+{id:'mkt',t:'Digital Marketer',i:['Business','Writing','Creativity'],sub:['English','Economics','Art'],s:['Copywriting','SEO','Social media','Analytics','Content planning','Communication'],r:['Marketing Associate','Content Strategist','SEO Executive'],w:'Fits communicators who enjoy storytelling and understanding audiences.',p:[['Content calendar','30-day plan for a small brand'],['SEO audit','Audit a local business site'],['Mini campaign','Run a small social campaign and track results']],res:['Google Skillshop','HubSpot Academy','Ahrefs Blog']},
+{id:'cloud',t:'Cloud / DevOps Engineer',i:['Technology','Cloud','Building apps'],sub:['Computer Science'],s:['Linux','Networking','Git','Cloud basics','Docker','Python'],r:['Cloud Support Associate','DevOps Intern','Junior SRE'],w:'Fits students who like infrastructure and automating things.',p:[['Dockerized app','Containerize a small web app'],['CI pipeline','Auto-test a repo on every push'],['Static site on cloud free tier','Deploy and document it']],res:['Cloud provider free tiers','KodeKloud free labs','Linux Journey']},
+{id:'pm',t:'Product Manager',i:['Business','People','Technology'],sub:['Economics','English','Computer Science'],s:['User research','Communication','Analytics','Prioritization','Wireframing','Writing specs'],r:['Associate PM','Product Analyst','Business Analyst'],w:'Fits organised leaders who connect users, business and tech.',p:[['Product spec','Write a one-page spec for a campus app idea'],['Feature prioritisation','Rank 10 features with a scoring model'],['Competitor teardown','Compare 3 apps and suggest improvements']],res:['Lenny\'s free posts','Reforge blog','Google Analytics Academy']}];
+const INTERESTS=['Technology','Data','Design','Security','Business','Writing','Math','Cloud','Creativity','People','Research','Problem solving','Building apps'];
+const SUBJECTS=['Mathematics','Computer Science','Statistics','Economics','English','Art','Psychology','Physics'];
+const SKILLS=[...new Set(C.flatMap(c=>c.s))].sort();
+const EDU=['High school','Diploma','Undergraduate (year 1-2)','Undergraduate (year 3-4)','Postgraduate'];
+const lc=x=>x.toLowerCase();
+const has=(p,k)=>p.skills.some(s=>lc(s)===lc(k));
+function recommend(p){const g=lc(p.goals);
+ return C.map(c=>{const si=c.i.filter(x=>p.interests.includes(x)).length,ss=c.s.filter(x=>has(p,x)).length,sb=c.sub.filter(x=>p.subjects.includes(x)).length;
+  const gm=[c.t,...c.r].some(x=>x.split(/[\s\/()]+/).filter(w=>w.length>3).some(w=>g.includes(lc(w))))?4:0;
+  const raw=si*3+ss*2+sb*1.5+gm;return{c,pct:Math.min(95,Math.max(15,Math.round(raw/22*100))),have:c.s.filter(x=>has(p,x)),miss:c.s.filter(x=>!has(p,x)),si,ss,sb}}).sort((a,b)=>b.pct-a.pct).slice(0,5)}
+function roadmap(c,p){const miss=c.s.filter(x=>!has(p,x)),list=miss.length?miss:c.s,m=Math.min(6,Math.max(3,3+Math.ceil(miss.length/2))),per=Math.ceil(list.length/m);
+ return Array.from({length:m},(_,i)=>{const sk=list.slice(i*per,(i+1)*per),pr=c.p[i%c.p.length];
+  const tasks=[...sk.map(s=>({id:`${c.id}-${i}-${s}`,t:`${miss.length?'Learn':'Deepen'}: ${s}`,r:c.res[i%c.res.length]})),{id:`${c.id}-${i}-proj`,t:`Build: ${pr[0]}`,r:pr[1]}];
+  return{n:i+1,title:i===m-1?'Portfolio & applications':i===0?'Foundations':'Skill building',tasks,milestone:`Month ${i+1} milestone: ${pr[0]} published`}})}
+const load=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return{}}};
+const Bar=({v,c='bg-ac'})=>h`<div className="h-2.5 rounded-full bg-line overflow-hidden"><div className=${'h-full rounded-full '+c} style=${{width:v+'%'}}></div></div>`;
+const Demo=()=>h`<span className="text-xs rounded px-2 py-0.5 border border-ac2 text-ac2">Demo-generated</span>`;
+
+function Landing({go}){return h`<div className="max-w-5xl mx-auto px-4 py-12 md:py-20">
+ <div className="grid md:grid-cols-2 gap-10 items-center">
+ <div><h1 className="font-d font-extrabold text-4xl md:text-6xl leading-tight">Find a career direction you can start on this month.</h1>
+ <p className="mt-5 text-mut text-lg max-w-md">Tell us what you study, enjoy and already know. Get five career matches, a month-by-month plan, and the skills to learn next.</p>
+ <div className="mt-7 flex gap-3 flex-wrap"><button className="btn" onClick=${()=>go('profile')}>Build my profile</button><button className="btn2" onClick=${()=>go('dash')}>Open dashboard</button></div>
+ <p className="mt-4 text-xs text-mut">Recommendations are rule-based demo output. They are suggestions, not predictions or guarantees of jobs or pay.</p></div>
+ <div className="bg-card border border-line rounded-2xl p-6 shadow-sm">
+  <p className="font-d font-semibold mb-4">Sample match preview</p>
+  ${[['Data Analyst',88],['Software Developer',74],['UX / UI Designer',52]].map(([n,v])=>h`<div key=${n} className="mb-4"><div className="flex justify-between text-sm mb-1"><span>${n}</span><span>${v}%</span></div><${Bar} v=${v}/></div>`)}
+  <p className="text-xs text-mut">Example only. Your results come from your own profile.</p></div></div>
+ <div className="grid sm:grid-cols-3 gap-4 mt-14">${[['Profile','Education, interests, skills and goals in one short form.'],['Matches & skill gaps','See why each career fits and what is missing.'],['Roadmap & projects','Tick off tasks; progress is saved in your browser.']].map(([a,b])=>h`<div key=${a} className="bg-card border border-line rounded-xl p-5"><p className="font-d font-semibold">${a}</p><p className="text-sm text-mut mt-1">${b}</p></div>`)}</div></div>`}
+
+const Multi=({label,opts,val,set})=>h`<div><p className="font-medium mb-2">${label}</p><div className="flex flex-wrap gap-2">${opts.map(o=>h`<button type="button" key=${o} aria-pressed=${val.includes(o)} className=${'chip '+(val.includes(o)?'on':'')} onClick=${()=>set(val.includes(o)?val.filter(x=>x!==o):[...val,o])}>${o}</button>`)}</div></div>`;
+
+function Profile({init,onDone}){const[p,setP]=useState(init||{edu:'',interests:[],skills:[],subjects:[],goals:''});const[err,setErr]=useState([]);const[busy,setBusy]=useState(false);const[custom,setCustom]=useState('');
+ const u=k=>v=>setP({...p,[k]:v});
+ const addC=()=>{const v=custom.trim();if(v&&!has(p,v))u('skills')([...p.skills,v]);setCustom('')};
+ const submit=e=>{e.preventDefault();const E=[];if(!p.edu)E.push('Choose your education level.');if(!p.interests.length)E.push('Pick at least one interest.');if(!p.skills.length)E.push('Add at least one skill you have (beginner is fine).');if(p.goals.trim().length<10)E.push('Describe your career goal in at least 10 characters.');
+  setErr(E);if(E.length)return;setBusy(true);setTimeout(()=>{setBusy(false);onDone(p)},900)};
+ return h`<form onSubmit=${submit} className="max-w-3xl mx-auto px-4 py-10 space-y-6">
+ <div><h2 className="font-d font-extrabold text-3xl">Your profile</h2><p className="text-mut">Used only in your browser to generate demo recommendations.</p></div>
+ ${err.length>0&&h`<div role="alert" className="border border-red-500 text-red-600 rounded-lg p-3 text-sm">${err.map(x=>h`<p key=${x}>${x}</p>`)}</div>`}
+ <label className="block"><span className="font-medium">Education level</span><select value=${p.edu} onChange=${e=>u('edu')(e.target.value)} className="mt-2"><option value="">Select...</option>${EDU.map(x=>h`<option key=${x}>${x}</option>`)}</select></label>
+ <${Multi} label="Interests" opts=${INTERESTS} val=${p.interests} set=${u('interests')}/>
+ <${Multi} label="Favorite subjects" opts=${SUBJECTS} val=${p.subjects} set=${u('subjects')}/>
+ <div><${Multi} label="Skills you already have" opts=${[...new Set([...SKILLS,...p.skills])]} val=${p.skills} set=${u('skills')}/>
+ <div className="flex gap-2 mt-3"><input placeholder="Add another skill" value=${custom} onChange=${e=>setCustom(e.target.value)} onKeyDown=${e=>{if(e.key==='Enter'){e.preventDefault();addC()}}}/><button type="button" className="btn2 whitespace-nowrap" onClick=${addC}>Add skill</button></div></div>
+ <label className="block"><span className="font-medium">Career goals</span><textarea rows="3" className="mt-2" placeholder="e.g. I want to work with data and help businesses decide." value=${p.goals} onChange=${e=>u('goals')(e.target.value)}></textarea></label>
+ <button className="btn w-full sm:w-auto" disabled=${busy}>${busy?h`<span className="inline-flex items-center gap-2"><span className="spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"></span>Analysing profile...</span>`:'Get career matches'}</button></form>`}
+
+function Results({recs,target,pick,go}){if(!recs.length)return h`<${Empty} go=${go}/>`;
+ return h`<div className="max-w-5xl mx-auto px-4 py-10"><div className="flex items-center gap-3 flex-wrap"><h2 className="font-d font-extrabold text-3xl">Your top 5 career matches</h2><${Demo}/></div>
+ <p className="text-mut mt-1 mb-6">Match % counts overlap between your profile and each career's typical skills. It is a starting point, not a prediction.</p>
+ <div className="grid md:grid-cols-2 gap-5">${recs.map((r,i)=>h`<div key=${r.c.id} className=${'bg-card border rounded-2xl p-5 flex flex-col '+(target===r.c.id?'border-ac':'border-line')}>
+  <div className="flex justify-between items-start gap-3"><div><p className="text-sm text-mut">#${i+1}</p><h3 className="font-d font-semibold text-xl">${r.c.t}</h3></div><div className="text-right"><p className="font-d font-extrabold text-2xl text-ac">${r.pct}%</p><p className="text-xs text-mut">match</p></div></div>
+  <div className="my-3"><${Bar} v=${r.pct}/></div>
+  <p className="text-sm"><b>Why it fits:</b> ${r.c.w} You share ${r.si} interest${r.si===1?'':'s'}, ${r.ss} skill${r.ss===1?'':'s'}${r.sb?' and '+r.sb+' subject'+(r.sb>1?'s':''):''} with this path.</p>
+  <p className="text-sm mt-3"><b>Required skills:</b></p><div className="flex flex-wrap gap-1.5 mt-1">${r.c.s.map(s=>h`<span key=${s} className=${'chip '+(r.have.includes(s)?'on':'')}>${s}</span>`)}</div>
+  <p className="text-sm mt-3"><b>Example roles:</b> ${r.c.r.join(', ')}</p>
+  <button className=${'mt-4 '+(target===r.c.id?'btn2':'btn')} onClick=${()=>{pick(r.c.id);go('dash')}}>${target===r.c.id?'Open my roadmap':'Choose & build roadmap'}</button></div>`)}</div></div>`}
+
+const Empty=({go})=>h`<div className="max-w-md mx-auto text-center py-24 px-4"><p className="font-d font-semibold text-2xl">Nothing here yet</p><p className="text-mut my-3">Complete your profile to see matches and a roadmap.</p><button className="btn" onClick=${()=>go('profile')}>Build my profile</button></div>`;
+
+function Dash({s,toggle,go,pick}){const[tab,setTab]=useState('road');const c=C.find(x=>x.id===s.target);
+ if(!s.profile)return h`<${Empty} go=${go}/>`;
+ if(!c)return h`<div className="max-w-md mx-auto text-center py-24 px-4"><p className="font-d font-semibold text-2xl">Pick a target career</p><p className="text-mut my-3">Choose one of your matches to generate a roadmap.</p><button className="btn" onClick=${()=>go('results')}>See matches</button></div>`;
+ const rm=roadmap(c,s.profile),all=rm.flatMap(m=>m.tasks),dn=all.filter(t=>s.done[t.id]).length,pct=Math.round(dn/all.length*100);
+ const have=c.s.filter(x=>has(s.profile,x)),miss=c.s.filter(x=>!has(s.profile,x));
+ const R=44,L=2*Math.PI*R;
+ const T=([k,l])=>h`<button key=${k} onClick=${()=>setTab(k)} className=${'px-4 py-2 rounded-lg text-sm font-medium '+(tab===k?'bg-ac text-bg':'border border-line bg-card')}>${l}</button>`;
+ return h`<div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+ <div className="flex items-center gap-3 flex-wrap"><h2 className="font-d font-extrabold text-3xl">Dashboard: ${c.t}</h2><${Demo}/></div>
+ <div className="grid md:grid-cols-4 gap-4">
+  <div className="bg-card border border-line rounded-2xl p-4 flex items-center gap-4 md:col-span-2"><svg width="100" height="100" viewBox="0 0 100 100" role="img" aria-label=${pct+'% complete'}><circle cx="50" cy="50" r=${R} fill="none" stroke="var(--line)" strokeWidth="10"/><circle cx="50" cy="50" r=${R} fill="none" stroke="var(--ac)" strokeWidth="10" strokeLinecap="round" strokeDasharray=${L} strokeDashoffset=${L*(1-pct/100)} transform="rotate(-90 50 50)"/><text x="50" y="56" textAnchor="middle" fontSize="20" fontWeight="700" fill="var(--ink)">${pct}%</text></svg><div><p className="font-d font-semibold text-lg">Roadmap progress</p><p className="text-sm text-mut">${dn} of ${all.length} tasks done over ${rm.length} months</p></div></div>
+  <div className="bg-card border border-line rounded-2xl p-4"><p className="text-3xl font-d font-extrabold text-ac">${have.length}/${c.s.length}</p><p className="text-sm text-mut">target skills you have</p></div>
+  <div className="bg-card border border-line rounded-2xl p-4"><p className="text-3xl font-d font-extrabold text-ac">${rm.filter(m=>m.tasks.every(t=>s.done[t.id])).length}/${rm.length}</p><p className="text-sm text-mut">milestones reached</p></div></div>
+ <div className="flex gap-2 flex-wrap">${[['road','Roadmap'],['gap','Skill gap'],['proj','Projects'],['mine','All matches']].map(T)}</div>
+ ${tab==='road'&&h`<div className="space-y-4">${rm.map(m=>{const d=m.tasks.filter(t=>s.done[t.id]).length;return h`<div key=${m.n} className="bg-card border border-line rounded-2xl p-5">
+  <div className="flex justify-between gap-3 mb-2"><p className="font-d font-semibold">Month ${m.n}: ${m.title}</p><p className="text-sm text-mut">${d}/${m.tasks.length}</p></div><${Bar} v=${d/m.tasks.length*100}/>
+  <div className="mt-3 space-y-2">${m.tasks.map(t=>h`<label key=${t.id} className="flex gap-3 items-start cursor-pointer"><input type="checkbox" className="mt-1 !w-4 !h-4 accent-[var(--ac)]" checked=${!!s.done[t.id]} onChange=${()=>toggle(t.id)}/><span className=${s.done[t.id]?'line-through text-mut':''}>${t.t}<span className="block text-xs text-mut">${t.r}</span></span></label>`)}</div>
+  <p className=${'text-sm mt-3 '+(d===m.tasks.length?'text-ac font-medium':'text-mut')}>${d===m.tasks.length?'Reached: ':''}${m.milestone}</p></div>`})}</div>`}
+ ${tab==='gap'&&h`<div className="bg-card border border-line rounded-2xl p-5"><p className="font-d font-semibold mb-1">Skill gap vs. ${c.t}</p><p className="text-sm text-mut mb-4">${miss.length?`Learn next, in this order: ${miss.slice(0,3).join(', ')}.`:'You list every typical skill. Focus on projects and depth.'}</p>
+  ${c.s.map(k=>{const y=has(s.profile,k);return h`<div key=${k} className="mb-3"><div className="flex justify-between text-sm mb-1"><span>${k}</span><span className=${y?'text-ac':'text-ac2'}>${y?'Have':'Learn next'}</span></div><${Bar} v=${y?100:12} c=${y?'bg-ac':'bg-ac2'}/></div>`})}</div>`}
+ ${tab==='proj'&&h`<div className="grid md:grid-cols-3 gap-4">${c.p.map(([n,d],i)=>h`<div key=${n} className="bg-card border border-line rounded-2xl p-5"><p className="text-xs text-mut">Beginner project ${i+1}</p><p className="font-d font-semibold text-lg mt-1">${n}</p><p className="text-sm text-mut mt-2">${d}</p><p className="text-sm mt-3">Show it on GitHub or a portfolio page with a short write-up of what you learned.</p></div>`)}</div>`}
+ ${tab==='mine'&&h`<div className="space-y-3">${recommend(s.profile).map(r=>h`<div key=${r.c.id} className="bg-card border border-line rounded-xl p-4 flex items-center gap-4"><div className="flex-1"><div className="flex justify-between text-sm mb-1"><span className="font-medium">${r.c.t}</span><span>${r.pct}%</span></div><${Bar} v=${r.pct}/></div><button className="btn2 text-sm" onClick=${()=>pick(r.c.id)}>${r.c.id===c.id?'Current':'Switch'}</button></div>`)}</div>`}
+ <div className="flex gap-3 flex-wrap"><button className="btn2 text-sm" onClick=${()=>go('profile')}>Edit profile</button><button className="btn2 text-sm" onClick=${()=>{if(confirm('Clear all saved demo data?'))s.reset()}}>Reset demo data</button></div></div>`}
+
+function App(){const[st,setSt]=useState(()=>({profile:null,target:null,done:{},...load()}));const[view,setView]=useState('landing');const[ld,setLd]=useState(false);
+ useEffect(()=>{try{localStorage.setItem(K,JSON.stringify(st))}catch(e){}},[st]);
+ const recs=st.profile?recommend(st.profile):[];
+ const reset=()=>{try{localStorage.removeItem(K)}catch(e){}setSt({profile:null,target:null,done:{}});setView('landing')};
+ const go=v=>{window.scrollTo(0,0);setView(v)};
+ const nav=[['landing','Home'],['profile','Profile'],['results','Careers'],['dash','Dashboard']];
+ return h`<div><header className="border-b border-line bg-card sticky top-0 z-10" style=${{paddingTop:'env(safe-area-inset-top,0px)'}}><div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+  <button onClick=${()=>go('landing')} className="font-d font-extrabold text-lg flex items-center gap-2"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M16 8l-2.5 5.5L8 16l2.5-5.5z" fill="var(--ac2)"/></svg>CareerCompass AI</button>
+  <nav className="flex gap-1">${nav.map(([k,l])=>h`<button key=${k} onClick=${()=>go(k)} className=${'px-3 py-1.5 rounded-lg text-sm '+(view===k?'bg-ac text-bg font-bold':'text-mut hover:text-ink')}>${l}</button>`)}</nav></div></header>
+ ${view==='landing'&&h`<${Landing} go=${go}/>`}
+ ${view==='profile'&&h`<${Profile} init=${st.profile} onDone=${p=>{setSt({...st,profile:p,target:recommend(p).some(r=>r.c.id===st.target)?st.target:null});go('results')}}/>`}
+ ${view==='results'&&h`<${Results} recs=${recs} target=${st.target} pick=${id=>setSt({...st,target:id})} go=${go}/>`}
+ ${view==='dash'&&h`<${Dash} s=${{...st,reset}} toggle=${id=>setSt({...st,done:{...st.done,[id]:!st.done[id]}})} pick=${id=>setSt({...st,target:id})} go=${go}/>`}
+ <footer className="text-center text-xs text-mut py-8 px-4">Demo MVP. Careers, scores and roadmaps are rule-based mock data, not AI predictions, job guarantees or salary estimates. Data stays in your browser.</footer></div>`}
+ReactDOM.createRoot(document.getElementById('root')).render(h`<${App}/>`);
+</script></body></html>
